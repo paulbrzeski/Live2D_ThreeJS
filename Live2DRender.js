@@ -313,9 +313,11 @@ THREE.Live2DRender.prototype = {
         // Playing idle motion if motion is over
         if(this.motionMgr.isFinished() && this.motionnm != null){
             // Fade in settings
-            this.motions[this.motionnm].setFadeIn(this.fadeines[this.motionnm]);
+            if (this.motions[this.motionnm])
+                this.motions[this.motionnm].setFadeIn(this.fadeines[this.motionnm]);
             // Set fade out
-            this.motions[this.motionnm].setFadeOut(this.fadeoutes[this.motionnm]);
+            if (this.motions[this.motionnm])
+                this.motions[this.motionnm].setFadeOut(this.fadeoutes[this.motionnm]);
             // Priority is low and motion playback
             this.motionMgr.startMotion(this.motions[this.motionnm], 0);
             // Audio files also play
@@ -353,18 +355,29 @@ THREE.Live2DRender.prototype = {
         this.dragMgr.update();
         this.dragX = this.dragMgr.getX();
         this.dragY = this.dragMgr.getY();
-        this.live2DModel.setParamFloat("PARAM_ANGLE_X", this.dragX * 30);       // Add a value between -30 and 30
-        this.live2DModel.setParamFloat("PARAM_ANGLE_Y", this.dragY * 30);
-        // Adjustment of body orientation by dragging
-        this.live2DModel.setParamFloat("PARAM_BODY_ANGLE_X", this.dragX*10);    // Add value from -10 to 10
-        // Adjusting the orientation of eyes by dragging
-        this.live2DModel.setParamFloat("PARAM_EYE_BALL_X", this.dragX);         // Add a value from -1 to 1
-        this.live2DModel.setParamFloat("PARAM_EYE_BALL_Y", this.dragY);
-        // Update character's parameters appropriately
+
         var t = UtSystem.getTimeMSec() * 0.001 * 2 * Math.PI; // Increase 2π (1 cycle) every second
         var cycle = 3.0; // Time (in seconds) the parameter goes round
-        // Breathe
-        this.live2DModel.setParamFloat("PARAM_BREATH", 0.5 + 0.5 * Math.sin(t/cycle));
+
+        // Parameters for Epsilon2.1 model from Live2D SDK
+        // this.live2DModel.setParamFloat("PARAM_ANGLE_X", this.dragX * 30);       // Add a value between -30 and 30
+        // this.live2DModel.setParamFloat("PARAM_ANGLE_Y", this.dragY * 30);
+        // // Adjustment of body orientation by dragging
+        // this.live2DModel.setParamFloat("PARAM_BODY_ANGLE_X", this.dragX*10);    // Add value from -10 to 10
+        // // Adjusting the orientation of eyes by dragging
+        // this.live2DModel.setParamFloat("PARAM_EYE_BALL_X", this.dragX);         // Add a value from -1 to 1
+        // this.live2DModel.setParamFloat("PARAM_EYE_BALL_Y", this.dragY);
+        // // Update character's parameters appropriately
+        // // Breathe
+        // this.live2DModel.setParamFloat("PARAM_BREATH", 0.5 + 0.5 * Math.sin(t/cycle));
+
+        // Parameters for Jack
+        this.live2DModel.setParamFloat("PARAM_ARML_WALK", Math.sin(t/cycle));
+        this.live2DModel.setParamFloat("PARAM_ARMR_WALK", -Math.sin(t/cycle));
+        this.live2DModel.setParamFloat("PARAM_LEGL_WALK", -Math.sin(t/cycle));
+        this.live2DModel.setParamFloat("PARAM_LEGR_WALK", Math.sin(t/cycle));
+        this.live2DModel.setParamFloat("PARAM_TORSO_WALK", .5 * Math.sin(t/cycle));
+        this.live2DModel.setParamFloat("PARAM_HEAD_TILT", 2.5 * Math.sin(t/cycle));
 
         // Updated Live2D model and rendered
         this.live2DModel.update(); // Calculate vertices etc. according to the current parameters
